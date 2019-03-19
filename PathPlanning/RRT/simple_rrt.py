@@ -6,6 +6,7 @@ author: AtsushiSakai(@Atsushi_twi)
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.collections import PatchCollection
 import random
 import math
 import copy
@@ -19,7 +20,7 @@ class RRT():
     """
 
     def __init__(self, start, goal, obstacleList,
-                 randArea, expandDis=1.0, goalSampleRate=5, maxIter=500):
+                 randArea, expandDis=2.0, goalSampleRate=5, maxIter=500):
         """
         Setting Parameter
 
@@ -49,8 +50,8 @@ class RRT():
         while True:
             # Random Sampling
             if random.randint(0, 100) > self.goalSampleRate:
-                rnd = [random.uniform(self.minrand, self.maxrand), random.uniform(
-                    self.minrand, self.maxrand)]
+                rnd = [random.uniform(self.minrand[0], self.maxrand[0]),
+                       random.uniform(self.minrand[1], self.maxrand[1])]
             else:
                 rnd = [self.end.x, self.end.y]
 
@@ -106,12 +107,20 @@ class RRT():
                 plt.plot([node.x, self.nodeList[node.parent].x], [
                          node.y, self.nodeList[node.parent].y], "-g")
 
+        circles = []
+        fig = plt.gcf()
+        ax = fig.gca()
         for (ox, oy, size) in self.obstacleList:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+            # plt.plot(ox, oy, "ok", ms=30 * size)
+            circle = plt.Circle((ox, oy), size, fill=False)
+            circles.append(circle)
+        p = PatchCollection(circles)
+        ax.add_collection(p)
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
+        plt.axis([self.minrand[0], self.maxrand[0],
+                  self.minrand[1], self.maxrand[1]])
         plt.grid(True)
         plt.pause(0.01)
 
@@ -144,21 +153,21 @@ class Node():
         self.parent = None
 
 
-def main(gx=5.0, gy=10.0):
+def main(gx=-6, gy=35.0):
     print("start " + __file__)
 
     # ====Search Path with RRT====
     obstacleList = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2)
+        (-9, 10, 1),
+        (-7, 12, 2),
+        (-7, 16, 2),
+        (-7, 20, 2),
+        (3, 15, 2),
+        (-1, 10, 2)
     ]  # [x,y,size]
     # Set Initial parameters
     rrt = RRT(start=[0, 0], goal=[gx, gy],
-              randArea=[-2, 15], obstacleList=obstacleList)
+              randArea=[(-10,0), (10,40)], obstacleList=obstacleList)
     path = rrt.Planning(animation=show_animation)
 
     # Draw final path
